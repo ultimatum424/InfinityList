@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">InfinityList</string>
+    <integer name="com_vk_sdk_AppId">5991133</integer>
+</resources>
