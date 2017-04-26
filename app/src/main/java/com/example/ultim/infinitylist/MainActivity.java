@@ -11,9 +11,11 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import java.lang.reflect.Type;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKCallback;
 import com.vk.sdk.VKScope;
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     AdapterItem adapterItem;
     ListView lvItems;
     String nextForm = "";
+    boolean networkConnection = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,15 +74,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResult(VKAccessToken res) {
                 // Пользователь успешно авторизовался
+                networkConnection = true;
             }
             @Override
             public void onError(VKError error) {
                 // Произошла ошибка авторизации (например, пользователь запретил авторизацию)
+                networkConnection = false;
+
             }
         })) {
             super.onActivityResult(requestCode, resultCode, data);
         }
-        LoadVKDate();
+        if (networkConnection){
+            LoadVKDate();
+        } else {
+            loadFromMemory();
+        }
         lvItems = (ListView) findViewById(R.id.recycle_view);
         adapterItem = new AdapterItem(this, newsFeedList);
         lvItems.setAdapter(adapterItem);
@@ -91,12 +101,25 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             protected void loadMoreData(int page) {
-                HashMap<String, String> hashMap = new HashMap<>();
-                hashMap.put("text", "TEST");
-                LoadVKDate();
+                if (networkConnection){
+                    LoadVKDate();
+                } else {
+                    loadFromMemory();
+                }
                 newsFeedList.size();
             }
         });
+    }
+
+    private void loadFromMemory() {
+        FileManager fileManager = new FileManager(getBaseContext());
+        Gson gson = new Gson();
+        String file = fileManager.ReadVkFeed();
+        Type listType = new TypeToken<ArrayList<NewsFeedList>>(){}.getType();
+        newsFeedList = gson.fromJson(file, listType);
+        if (adapterItem != null){
+            adapterItem.notifyDataSetChanged();
+        }
     }
 
     @Override
@@ -122,6 +145,9 @@ public class MainActivity extends AppCompatActivity {
                 for (int i = 0; i < newsFeed.getLength(); i++) {
                     newsFeedList.add(newsFeed.getItem(i));
                 }
+
+                FileManager fileManager = new FileManager(getBaseContext());
+                fileManager.saveVkFeed( gson.toJson(newsFeedList));
                 adapterItem.notifyDataSetChanged();
             }
             @Override
