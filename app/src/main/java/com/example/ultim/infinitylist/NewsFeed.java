@@ -83,6 +83,10 @@ public class NewsFeed {
         return response.items.length;
     }
 
+    public String getNextForm(){
+        return response.next_from;
+    }
+
 }
 
 

@@ -3,6 +3,8 @@ package com.example.ultim.infinitylist;
 import android.content.Intent;
 import android.widget.Toast;
 
+import com.squareup.picasso.OkHttpDownloader;
+import com.squareup.picasso.Picasso;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKAccessTokenTracker;
 import com.vk.sdk.VKSdk;
@@ -18,6 +20,12 @@ public class Application extends android.app.Application {
         super.onCreate();
         String[] fingerprints = VKUtil.getCertificateFingerprint(this, this.getPackageName());
         VKSdk.initialize(this);
+        Picasso.Builder builder = new Picasso.Builder(this);
+        builder.downloader(new OkHttpDownloader(this,Integer.MAX_VALUE));
+        Picasso built = builder.build();
+        built.setIndicatorsEnabled(true);
+        built.setLoggingEnabled(true);
+        Picasso.setSingletonInstance(built);
     }
 }
 

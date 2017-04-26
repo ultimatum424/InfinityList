@@ -42,30 +42,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
     EndlessScrollListener scrollListener;
-    HashMap<String, String> hashMap;
-    ArrayList<HashMap<String, String>> arrayList;
     ArrayList<NewsFeedList> newsFeedList;
-    SimpleAdapter simpleAdapter;
     AdapterItem adapterItem;
     ListView lvItems;
+    String nextForm = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         VKSdk.login(this, VKScope.FRIENDS, VKScope.WALL);
-        arrayList = new ArrayList<>();
         newsFeedList = new ArrayList<>();
-        HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put("text", "TEST");
-        for (int i = 0; i < 11; i++) {
-            //arrayList.add(hashMap);
-        }
-
     }
 
     @Override
@@ -88,10 +80,8 @@ public class MainActivity extends AppCompatActivity {
             super.onActivityResult(requestCode, resultCode, data);
         }
         LoadVKDate();
-        ListView lvItems = (ListView) findViewById(R.id.recycle_view);
+        lvItems = (ListView) findViewById(R.id.recycle_view);
         adapterItem = new AdapterItem(this, newsFeedList);
-        simpleAdapter = new SimpleAdapter(this, arrayList,
-                R.layout.list_v,  new String[]{ "text" }, new int[]{R.id.text_v});
         lvItems.setAdapter(adapterItem);
         lvItems.setOnScrollListener(new EndlessScrollListener() {
             @Override
@@ -103,11 +93,7 @@ public class MainActivity extends AppCompatActivity {
             protected void loadMoreData(int page) {
                 HashMap<String, String> hashMap = new HashMap<>();
                 hashMap.put("text", "TEST");
-                for (int i = 0; i < 20; i++) {
-                  // arrayList.add(hashMap);
-                }
                 LoadVKDate();
-                arrayList.size();
                 newsFeedList.size();
             }
         });
@@ -119,8 +105,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void LoadVKDate(){
-        // VKRequest request = VKApi.friends().get(VKParameters.from());
-        VKRequest request = new VKRequest("newsfeed.get", VKParameters.from(VKApiConst.FILTERS, "post", VKApiConst.COUNT, 10));
+        VKRequest request = null;
+        if (!Objects.equals(nextForm, "")){
+            request = new VKRequest("newsfeed.get", VKParameters.from(VKApiConst.FILTERS, "post", "start_from", nextForm,  VKApiConst.COUNT, 10));
+        } else {
+            request = new VKRequest("newsfeed.get", VKParameters.from(VKApiConst.FILTERS, "post", VKApiConst.COUNT, 10));
+        }
         request.executeWithListener(new VKRequest.VKRequestListener() {
             @Override
             public void onComplete(VKResponse response) {
@@ -128,19 +118,11 @@ public class MainActivity extends AppCompatActivity {
                 //Do complete stuff
                 Gson gson = new Gson();
                 NewsFeed newsFeed = gson.fromJson(response.json.toString(), NewsFeed.class);
+                nextForm = newsFeed.getNextForm();
                 for (int i = 0; i < newsFeed.getLength(); i++) {
                     newsFeedList.add(newsFeed.getItem(i));
                 }
-                //newsFeedList.add(newsFeed);
-                List<String> strings = newsFeed.getList();
-                for (int i = 0; i < strings.size(); i++) {
-                    HashMap<String, String> hashMap = new HashMap<String, String>();
-                    hashMap.put("text", strings.get(i));
-                    arrayList.add(hashMap);
-                }
-                simpleAdapter.notifyDataSetChanged();
                 adapterItem.notifyDataSetChanged();
-
             }
             @Override
             public void onError(VKError error) {

@@ -12,12 +12,17 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.NetworkPolicy;
+import com.squareup.picasso.Picasso;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Created by Ultim on 20.04.2017.
@@ -34,59 +39,48 @@ public class AdapterItem extends ArrayAdapter<NewsFeedList> {
     @NonNull
     @Override
     public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-        NewsFeedList jogFeed = getItem(position);
+        final NewsFeedList jogFeed = getItem(position);
         if (convertView == null){
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.list_v, parent, false);
         }
         TextView textView = (TextView) convertView.findViewById(R.id.text_v);
-        ImageView imageView = (ImageView) convertView.findViewById(R.id.image_v);
-
+        final ImageView imageView = (ImageView) convertView.findViewById(R.id.image_v);
+        imageView.setImageResource(R.drawable.empty);
         if (jogFeed != null) {
-            imageView.setImageBitmap(LoadImage(jogFeed.getUrlImage()));
+            if (!Objects.equals(jogFeed.getUrlImage(), "")){
+                // TODO: Add Cashing image
+                Picasso.with(getContext())
+                        .load(jogFeed.getUrlImage())
+                        .networkPolicy(NetworkPolicy.OFFLINE)
+                        .into(imageView, new Callback() {
+                            @Override
+                            public void onSuccess() {
+
+                            }
+                            @Override
+                            public void onError() {
+                                Picasso.with(getContext())
+                                        .load(jogFeed.getUrlImage())
+                                        .error(R.drawable.empty)
+                                        .into(imageView, new Callback() {
+                                            @Override
+                                            public void onSuccess() {
+
+                                            }
+
+                                            @Override
+                                            public void onError() {
+
+                                            }
+                                        });
+                            }
+                        });
+            }
             textView.setText(jogFeed.getText());
         }
         return convertView;
     }
 
-    private Bitmap LoadImage(String image_URL){
-        //ImageView bmImage = (ImageView)findViewById(R.id.image);
-        BitmapFactory.Options bmOptions;
-        bmOptions = new BitmapFactory.Options();
-        bmOptions.inSampleSize = 1;
-        Bitmap bm = LoadImage(image_URL, bmOptions);
-        //bmImage.setImageBitmap(bm);
-        return bm;
-    }
-    private Bitmap LoadImage(String URL, BitmapFactory.Options options) {
-        Bitmap bitmap = null;
-        InputStream in = null;
-        try {
-            in = OpenHttpConnection(URL);
-            bitmap = BitmapFactory.decodeStream(in, null, options);
-            in.close();
-        } catch (IOException ignored) {
-        }
-        return bitmap;
-    }
-    private InputStream OpenHttpConnection(String strURL) throws IOException{
-        InputStream inputStream = null;
-        URL url = new URL(strURL);
-        URLConnection conn = url.openConnection();
-
-        try{
-            HttpURLConnection httpConn = (HttpURLConnection)conn;
-            httpConn.setRequestMethod("GET");
-            httpConn.connect();
-
-            if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                inputStream = httpConn.getInputStream();
-            }
-        }
-        catch (Exception ex)
-        {
-        }
-        return inputStream;
-    }
 }
 
 
