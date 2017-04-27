@@ -31,18 +31,18 @@ public class AlarmService extends BroadcastReceiver {
     FileManager fileManager;
     int newDate = 0;
     int lastDate = 0;
-    boolean isNewFeed = false;
     @Override
     public void onReceive(Context context, Intent intent) {
         fileManager = new FileManager(context);
         if(!MainActivity.active){
             getNewFeed(context);
         }
-        Intent alarm = new Intent(context, AlarmService.class);
+        Intent alarm = new Intent();
+        //Intent alarm = new Intent(context, AlarmService.class);
+        alarm.setAction(Application.INTENT_NAME);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarm, 0);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.setWindow(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), Application.UPDATE_TIME, pendingIntent);
-
     }
 
     private void getNewFeed(final Context context){
