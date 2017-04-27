@@ -8,11 +8,13 @@ public class NewsFeedList {
     String text;
     String textImage;
     String urlImage;
+    int date;
 
-    public NewsFeedList(String text, String textImage, String urlImage) {
+    public NewsFeedList(String text, String textImage, String urlImage, int date) {
         this.text = text;
         this.textImage = textImage;
         this.urlImage = urlImage;
+        this.date = date;
     }
 
     public String getText() {
@@ -25,5 +27,9 @@ public class NewsFeedList {
 
     public String getUrlImage() {
         return urlImage;
+    }
+
+    public int getDate() {
+        return date;
     }
 }

@@ -2,10 +2,15 @@ package com.example.ultim.infinitylist;
 
 import android.content.Context;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 
 /**
  * Created by Ultim on 26.04.2017.
@@ -47,5 +52,15 @@ public class FileManager {
             e.printStackTrace();
         }
         return json;
+    }
+    public ArrayList<NewsFeedList> loadNewsFeed(){
+        Gson gson = new Gson();
+        String file = ReadVkFeed();
+        Type listType = new TypeToken<ArrayList<NewsFeedList>>(){}.getType();
+        return gson.fromJson(file, listType);
+    }
+
+    public int getLastData(){
+        return loadNewsFeed().get(0).getDate();
     }
 }

@@ -54,12 +54,27 @@ public class MainActivity extends AppCompatActivity {
     ListView lvItems;
     String nextForm = "";
     boolean networkConnection = false;
+    static boolean active = false;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        active = true;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        active = false;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        VKSdk.login(this, VKScope.FRIENDS, VKScope.WALL);
+        if (VKSdk.isLoggedIn()){
+            VKSdk.login(this, VKScope.FRIENDS, VKScope.WALL);
+        }
         newsFeedList = new ArrayList<>();
     }
 

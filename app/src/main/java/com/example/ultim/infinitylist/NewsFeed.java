@@ -67,15 +67,17 @@ public class NewsFeed {
         String text = response.items[i].text;
         String text_image = "";
         String url = "";
+        int date = 0;
         if (response.items[i].attachments != null){
         for (int j = 0; j < response.items[i].attachments.length; j++) {
                 if  (Objects.equals(response.items[i].attachments[j].type, "photo")) {
                     text_image = response.items[i].attachments[j].photo.text;
                     url = response.items[i].attachments[j].photo.photo_604;
+                    date = response.items[i].date;
                 }
             }
         }
-        newsFeedList = new NewsFeedList(text, text_image, url);
+        newsFeedList = new NewsFeedList(text, text_image, url, date);
         return newsFeedList;
     }
 
@@ -85,6 +87,10 @@ public class NewsFeed {
 
     public String getNextForm(){
         return response.next_from;
+    }
+
+    public int getDate(){
+        return response.items[0].date;
     }
 
 }
