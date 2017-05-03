@@ -23,6 +23,7 @@ public class Application extends android.app.Application {
 
     public static final int UPDATE_TIME = 30000;
     public static final String INTENT_NAME = "ultim.intent.action.Alarm";
+    public static final int SIZE_FEED = 10;
 
     VKAccessTokenTracker vkAccessTokenTracker = new VKAccessTokenTracker() {
         @Override

@@ -3,6 +3,7 @@ package com.example.ultim.infinitylist;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +17,7 @@ import java.lang.reflect.Type;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.iamtheib.infiniterecyclerview.InfiniteAdapter;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKCallback;
 import com.vk.sdk.VKScope;
@@ -48,13 +50,13 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
-    EndlessScrollListener scrollListener;
     ArrayList<NewsFeedList> newsFeedList;
-    AdapterItem adapterItem;
-    ListView lvItems;
+    RecyclerView recyclerView;
+    FeedAdapter feedAdapter;
     String nextForm = "";
     boolean networkConnection = false;
     static boolean active = false;
+    boolean firstLoad = true;
 
     @Override
     protected void onStart() {
@@ -101,30 +103,19 @@ public class MainActivity extends AppCompatActivity {
             super.onActivityResult(requestCode, resultCode, data);
         }
         if (networkConnection){
-            LoadVKDate();
+            loadFromVK();
         } else {
             loadFromMemory();
         }
-        lvItems = (ListView) findViewById(R.id.recycle_view);
-        adapterItem = new AdapterItem(this, newsFeedList);
-        lvItems.setAdapter(adapterItem);
-        lvItems.setOnScrollListener(new EndlessScrollListener() {
-            @Override
-            protected boolean hasMoreDataToLoad() {
-                return true;
-            }
 
-            @Override
-            protected void loadMoreData(int page) {
-                if (networkConnection){
-                    LoadVKDate();
-                } else {
-                    loadFromMemory();
-                }
-                newsFeedList.size();
-            }
-        });
     }
+
+    private InfiniteAdapter.OnLoadMoreListener mLoadMoreListener = new InfiniteAdapter.OnLoadMoreListener() {
+        @Override
+        public void onLoadMore() {
+            loadFromVK();
+        }
+    };
 
     private void loadFromMemory() {
         FileManager fileManager = new FileManager(getBaseContext());
@@ -132,9 +123,7 @@ public class MainActivity extends AppCompatActivity {
         String file = fileManager.ReadVkFeed();
         Type listType = new TypeToken<ArrayList<NewsFeedList>>(){}.getType();
         newsFeedList = gson.fromJson(file, listType);
-        if (adapterItem != null){
-            adapterItem.notifyDataSetChanged();
-        }
+        initRecycle();
     }
 
     @Override
@@ -142,12 +131,22 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    private void LoadVKDate(){
+    private void initRecycle(){
+        recyclerView = (RecyclerView) findViewById(R.id.recycle_view);
+        feedAdapter = new FeedAdapter(this, newsFeedList);
+        recyclerView.setAdapter(feedAdapter);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        feedAdapter.setOnLoadMoreListener(mLoadMoreListener);
+    }
+
+    private void loadFromVK(){
         VKRequest request = null;
         if (!Objects.equals(nextForm, "")){
-            request = new VKRequest("newsfeed.get", VKParameters.from(VKApiConst.FILTERS, "post", "start_from", nextForm,  VKApiConst.COUNT, 10));
+            request = new VKRequest("newsfeed.get", VKParameters.from(VKApiConst.FILTERS, "post", "start_from", nextForm,  VKApiConst.COUNT,
+                    Application.SIZE_FEED));
         } else {
-            request = new VKRequest("newsfeed.get", VKParameters.from(VKApiConst.FILTERS, "post", VKApiConst.COUNT, 10));
+            request = new VKRequest("newsfeed.get", VKParameters.from(VKApiConst.FILTERS, "post", VKApiConst.COUNT, Application.SIZE_FEED));
         }
         request.executeWithListener(new VKRequest.VKRequestListener() {
             @Override
@@ -157,13 +156,20 @@ public class MainActivity extends AppCompatActivity {
                 Gson gson = new Gson();
                 NewsFeed newsFeed = gson.fromJson(response.json.toString(), NewsFeed.class);
                 nextForm = newsFeed.getNextForm();
+                final int currSize = newsFeedList.size();
                 for (int i = 0; i < newsFeed.getLength(); i++) {
                     newsFeedList.add(newsFeed.getItem(i));
                 }
-
                 FileManager fileManager = new FileManager(getBaseContext());
                 fileManager.saveVkFeed( gson.toJson(newsFeedList));
-                adapterItem.notifyDataSetChanged();
+                if (firstLoad) {
+                    firstLoad = false;
+                    initRecycle();
+                } else {
+                    feedAdapter.moreDataLoaded(currSize, newsFeedList.size() - currSize);
+                    feedAdapter.setShouldLoadMore(true);
+                }
+
             }
             @Override
             public void onError(VKError error) {
