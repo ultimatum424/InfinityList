@@ -72,7 +72,7 @@ public class AlarmService extends Service {
 
                 newDate = (new Gson().fromJson(response.json.toString(), NewsFeed.class)).getDate();
                 lastDate = fileManager.getLastData();
-                if (newDate >= lastDate){
+                if (newDate > lastDate){
                     Intent notificationIntent = new Intent(context, MainActivity.class);
                     notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                             | Intent.FLAG_ACTIVITY_CLEAR_TASK);
