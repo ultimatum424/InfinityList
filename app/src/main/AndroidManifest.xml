@@ -27,7 +27,7 @@
         </activity>
 
         <receiver
-            android:name=".AlarmService"
+            android:name=".AlarmReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

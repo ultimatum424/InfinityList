@@ -27,7 +27,7 @@ import java.util.List;
  * Created by Ultim on 27.04.2017.
  */
 
-public class AlarmService extends BroadcastReceiver {
+public class AlarmReceiver extends BroadcastReceiver {
     FileManager fileManager;
     int newDate = 0;
     int lastDate = 0;
@@ -38,7 +38,7 @@ public class AlarmService extends BroadcastReceiver {
             getNewFeed(context);
         }
         Intent alarm = new Intent();
-        //Intent alarm = new Intent(context, AlarmService.class);
+        //Intent alarm = new Intent(context, AlarmReceiver.class);
         alarm.setAction(Application.INTENT_NAME);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarm, 0);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

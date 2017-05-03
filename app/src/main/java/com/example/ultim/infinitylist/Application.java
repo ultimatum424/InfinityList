@@ -51,7 +51,7 @@ public class Application extends android.app.Application {
         // ALARM
 
         Intent alarm = new Intent();
-       // Intent alarm = new Intent(getBaseContext(), AlarmService.class);
+       // Intent alarm = new Intent(getBaseContext(), AlarmReceiver.class);
         alarm.setAction(INTENT_NAME);
         //Intent alarm = new Intent(INTENT_NAME);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(getBaseContext(), 0, alarm, 0);
