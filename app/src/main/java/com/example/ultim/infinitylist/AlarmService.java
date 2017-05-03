@@ -1,48 +1,66 @@
 package com.example.ultim.infinitylist;
 
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.IBinder;
 import android.os.SystemClock;
+import android.support.annotation.IntDef;
 import android.support.v7.app.NotificationCompat;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.vk.sdk.api.VKApiConst;
 import com.vk.sdk.api.VKError;
 import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKResponse;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
+public class AlarmService extends Service {
 
-/**
- * Created by Ultim on 27.04.2017.
- */
-
-public class AlarmReceiver extends BroadcastReceiver {
     FileManager fileManager;
     int newDate = 0;
     int lastDate = 0;
+    public  static boolean isEnable = false;
+
     @Override
-    public void onReceive(Context context, Intent intent) {
-        fileManager = new FileManager(context);
+    public void onCreate() {
+        super.onCreate();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId){
+        fileManager = new FileManager(this);
         if(!MainActivity.active){
-            getNewFeed(context);
+            getNewFeed(this);
         }
-        Intent alarm = new Intent();
-        //Intent alarm = new Intent(context, AlarmReceiver.class);
-        alarm.setAction(Application.INTENT_NAME);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, alarm, 0);
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setWindow(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), Application.UPDATE_TIME, pendingIntent);
+        setAlarm();
+        isEnable = true;
+        return START_STICKY;
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        // TODO: Return the communication channel to the service.
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    private void setAlarm(){
+        //Intent alarm = new Intent();
+        Intent intent = new Intent(this, AlarmService.class);
+        PendingIntent pintent = PendingIntent.getService(this, 0, intent, 0);
+        AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        alarm.cancel(pintent);
+        alarm.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),5000, pintent);
     }
 
     private void getNewFeed(final Context context){
@@ -54,7 +72,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
                 newDate = (new Gson().fromJson(response.json.toString(), NewsFeed.class)).getDate();
                 lastDate = fileManager.getLastData();
-                if (newDate > lastDate){
+                if (newDate >= lastDate){
                     Intent notificationIntent = new Intent(context, MainActivity.class);
                     notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                             | Intent.FLAG_ACTIVITY_CLEAR_TASK);

@@ -61,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        if (!AlarmService.isEnable){
+            startService(new Intent(this, AlarmService.class));
+        }
         active = true;
     }
 

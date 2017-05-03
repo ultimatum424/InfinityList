@@ -47,16 +47,6 @@ public class Application extends android.app.Application {
         built.setIndicatorsEnabled(true);
         built.setLoggingEnabled(true);
         Picasso.setSingletonInstance(built);
-
-        // ALARM
-
-        Intent alarm = new Intent();
-       // Intent alarm = new Intent(getBaseContext(), AlarmReceiver.class);
-        alarm.setAction(INTENT_NAME);
-        //Intent alarm = new Intent(INTENT_NAME);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getBaseContext(), 0, alarm, 0);
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setWindow(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), UPDATE_TIME, pendingIntent);
     }
 }
 
